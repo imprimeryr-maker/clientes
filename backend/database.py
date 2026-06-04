@@ -39,6 +39,7 @@ def _init_db():
 
         CREATE TABLE IF NOT EXISTS clientes (
             id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL DEFAULT '',
             nombre TEXT NOT NULL DEFAULT '',
             telefono TEXT DEFAULT '',
             correo TEXT DEFAULT '',
@@ -58,6 +59,14 @@ def _init_db():
     """)
     conn.commit()
     conn.close()
+
+    try:
+        conn2 = _get_conn()
+        conn2.execute("ALTER TABLE clientes ADD COLUMN user_id TEXT NOT NULL DEFAULT ''")
+        conn2.commit()
+        conn2.close()
+    except Exception:
+        pass
 
 
 def _hash_password(password: str) -> str:
@@ -158,30 +167,31 @@ def eliminar_session(token: str):
 
 # ========== CLIENTES ==========
 
-def get_clientes():
+def get_clientes(user_id: str):
     conn = _get_conn()
-    rows = conn.execute("SELECT * FROM clientes ORDER BY created_at DESC").fetchall()
+    rows = conn.execute("SELECT * FROM clientes WHERE user_id = ? ORDER BY created_at DESC", (user_id,)).fetchall()
     conn.close()
     return [_row_to_dict(r) for r in rows]
 
 
-def get_cliente(cliente_id: str):
+def get_cliente(cliente_id: str, user_id: str):
     conn = _get_conn()
-    row = conn.execute("SELECT * FROM clientes WHERE id = ?", (cliente_id,)).fetchone()
+    row = conn.execute("SELECT * FROM clientes WHERE id = ? AND user_id = ?", (cliente_id, user_id)).fetchone()
     conn.close()
     return _row_to_dict(row) if row else None
 
 
-def create_cliente(data: dict):
+def create_cliente(data: dict, user_id: str):
     cliente_id = str(uuid.uuid4())
     created_at = datetime.now().isoformat()
     conn = _get_conn()
     conn.execute(
-        """INSERT INTO clientes (id, nombre, telefono, correo, rut, estado_civil, profesion,
+        """INSERT INTO clientes (id, user_id, nombre, telefono, correo, rut, estado_civil, profesion,
            objetivo, sub_objetivo, direccion, ingresos, capacidad_inversion, deudas, activos, cuentas, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             cliente_id,
+            user_id,
             data.get("nombre", ""),
             data.get("telefono", ""),
             data.get("correo", ""),
@@ -202,11 +212,11 @@ def create_cliente(data: dict):
     conn.commit()
     conn.close()
     result = dict(data)
-    result.update({"id": cliente_id, "created_at": created_at})
+    result.update({"id": cliente_id, "user_id": user_id, "created_at": created_at})
     return result
 
 
-def update_cliente(cliente_id, **kwargs):
+def update_cliente(cliente_id, user_id, **kwargs):
     conn = _get_conn()
     updates = []
     values = []
@@ -217,13 +227,14 @@ def update_cliente(cliente_id, **kwargs):
         updates.append(f"{k} = ?")
         values.append(v)
     values.append(cliente_id)
-    conn.execute(f"UPDATE clientes SET {', '.join(updates)} WHERE id = ?", values)
+    values.append(user_id)
+    conn.execute(f"UPDATE clientes SET {', '.join(updates)} WHERE id = ? AND user_id = ?", values)
     conn.commit()
     conn.close()
 
 
-def delete_cliente(cliente_id):
+def delete_cliente(cliente_id, user_id):
     conn = _get_conn()
-    conn.execute("DELETE FROM clientes WHERE id = ?", (cliente_id,))
+    conn.execute("DELETE FROM clientes WHERE id = ? AND user_id = ?", (cliente_id, user_id))
     conn.commit()
     conn.close()
