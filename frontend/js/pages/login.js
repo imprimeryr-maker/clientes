@@ -93,7 +93,6 @@ const Auth = {
       localStorage.setItem('token', res.token);
       localStorage.setItem('user', JSON.stringify(res.usuario));
       window.location.hash = '#/';
-      window.location.reload();
     } catch (e) {
       errorEl.textContent = e.message;
       errorEl.style.display = 'block';
