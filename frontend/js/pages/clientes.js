@@ -219,7 +219,8 @@ Pages.clientes = {
     const uf = cfg.uf_valor || 36000;
     const pct = cfg.porcentaje || 0;
     const sueldo = ingresos?.renta || 0;
-    return ((sueldo * 60) / uf + pct).toFixed(2);
+    const base = (sueldo * 60) / uf;
+    return (base * (1 + pct / 100)).toFixed(2);
   },
 
   async verDetalle(id) {

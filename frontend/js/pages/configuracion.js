@@ -11,7 +11,7 @@ Pages.configuracion = {
       <div class="card">
         <h3>📐 Fórmula de Cálculo — Límite Máx. Crédito</h3>
         <div style="background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.15);border-radius:10px;padding:16px;margin:16px 0;font-size:14px;color:#d1d5db;font-family:monospace;">
-          Límite = (Sueldo × 60) ÷ UF + Porcentaje adicional
+          Límite = ((Sueldo × 60) ÷ UF) × (1 + Porcentaje ÷ 100)
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -69,7 +69,9 @@ Pages.configuracion = {
     const preview = document.getElementById('cfg-preview');
     if (preview) {
       if (uf > 0) {
-        preview.innerHTML = `🔮 Vista previa: <strong>(Sueldo × 60) ÷ ${uf.toLocaleString()} + ${pct}</strong> = resultado en UF`;
+        const base = 1000000;
+        const ej = ((base * 60) / uf * (1 + pct / 100)).toFixed(2);
+        preview.innerHTML = `🔮 Vista previa con sueldo $1.000.000: <strong>((1.000.000 × 60) ÷ ${uf.toLocaleString()}) × (1 + ${pct}%) = ${ej} UF</strong>`;
       } else {
         preview.innerHTML = `💡 Ingresa o consulta el valor UF para ver la vista previa.`;
       }
