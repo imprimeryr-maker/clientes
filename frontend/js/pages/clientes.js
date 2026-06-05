@@ -210,6 +210,18 @@ Pages.clientes = {
     } catch (e) { container.innerHTML = `<div class="alert alert-error">Error: ${e.message}</div>`; }
   },
 
+  _config() {
+    return JSON.parse(localStorage.getItem('configuracion')) || {};
+  },
+
+  _calcularLimite(ingresos) {
+    const cfg = this._config();
+    const uf = cfg.uf_valor || 36000;
+    const pct = cfg.porcentaje || 0;
+    const sueldo = ingresos?.renta || 0;
+    return ((sueldo * 60) / uf + pct).toFixed(2);
+  },
+
   async verDetalle(id) {
     try {
       const c = await API.get(`/clientes/${id}`);
@@ -218,7 +230,7 @@ Pages.clientes = {
       const deudas = c.deudas || [];
       const descuento = deudas.filter(d => d.descontar).reduce((s, d) => s + (d.cuota || 0), 0);
       const neto = Math.max(0, total - descuento);
-      const limite = (neto / 625 + 200).toFixed(2);
+      const limite = this._calcularLimite(ing);
 
       const html = `
         <div style="padding:24px;max-width:900px;margin:0 auto;">
@@ -274,7 +286,7 @@ Pages.clientes = {
       const deudas = c.deudas || [];
       const descuento = deudas.filter(d => d.descontar).reduce((s, d) => s + (d.cuota || 0), 0);
       const neto = Math.max(0, total - descuento);
-      const limite = (neto / 625 + 200).toFixed(2);
+      const limite = this._calcularLimite(ing);
       const fecha = (c.created_at || '').slice(0,10) || 'N/A';
 
       const deudasRows = deudas.map(d => `<tr><td>${esc(d.tipo)}</td><td>${esc(d.institucion)}</td><td>${fmt(d.cuota)}</td><td>${fmt(d.total)}</td><td>${d.nro_cuota || 0}</td><td>${d.descontar ? 'Sí' : 'No'}</td></tr>`).join('');

@@ -38,6 +38,13 @@ function mostrarTopbar() {
     Auth.renderRegister(el);
   });
 
+  Router.register('/configuracion', async (el) => {
+    if (!estaAutenticado()) { window.location.hash = '#/login'; return; }
+    if (!(await verificarSesion())) { window.location.hash = '#/login'; return; }
+    mostrarTopbar();
+    Pages.configuracion.render(el);
+  });
+
   Router.register('/', async (el) => {
     if (!estaAutenticado()) {
       window.location.hash = '#/login';
