@@ -48,6 +48,7 @@ def _init_db():
             profesion TEXT DEFAULT '',
             objetivo TEXT DEFAULT '',
             sub_objetivo TEXT DEFAULT '',
+            regimen_matrimonial TEXT DEFAULT '',
             direccion TEXT DEFAULT '',
             ingresos TEXT DEFAULT '{}',
             capacidad_inversion TEXT DEFAULT '{}',
@@ -186,9 +187,9 @@ def create_cliente(data: dict, user_id: str):
     created_at = datetime.now().isoformat()
     conn = _get_conn()
     conn.execute(
-        """INSERT INTO clientes (id, user_id, nombre, telefono, correo, rut, estado_civil, profesion,
+        """INSERT INTO clientes (id, user_id, nombre, telefono, correo, rut, estado_civil, regimen_matrimonial, profesion,
            objetivo, sub_objetivo, direccion, ingresos, capacidad_inversion, deudas, activos, cuentas, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             cliente_id,
             user_id,
@@ -197,6 +198,7 @@ def create_cliente(data: dict, user_id: str):
             data.get("correo", ""),
             data.get("rut", ""),
             data.get("estado_civil", ""),
+            data.get("regimen_matrimonial", ""),
             data.get("profesion", ""),
             data.get("objetivo", ""),
             data.get("sub_objetivo", ""),

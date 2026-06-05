@@ -41,6 +41,7 @@ class ClienteCreate(BaseModel):
     correo: str = ""
     rut: str = ""
     estado_civil: str = ""
+    regimen_matrimonial: str = ""
     profesion: str = ""
     objetivo: str = ""
     sub_objetivo: Optional[str] = None
@@ -58,6 +59,7 @@ class ClienteUpdate(BaseModel):
     correo: Optional[str] = None
     rut: Optional[str] = None
     estado_civil: Optional[str] = None
+    regimen_matrimonial: Optional[str] = None
     profesion: Optional[str] = None
     objetivo: Optional[str] = None
     sub_objetivo: Optional[str] = None

@@ -20,7 +20,8 @@ Pages.clientes = {
             <div class="form-group"><label>RUT</label><input type="text" id="c-rut" placeholder="12.345.678-9"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>Estado Civil</label><select id="c-estado-civil"><option>Soltero/a</option><option>Casado/a</option><option>Divorciado/a</option><option>Viudo/a</option><option>Conviviente</option></select></div>
+            <div class="form-group"><label>Estado Civil</label><select id="c-estado-civil" onchange="Pages.clientes.toggleRegimen('c-')"><option>Soltero/a</option><option>Casado/a</option><option>Divorciado/a</option><option>Viudo/a</option><option>Conviviente</option></select></div>
+            <div class="form-group" id="c-regimen-group" style="display:none;"><label>Régimen Matrimonial</label><select id="c-regimen-matrimonial"><option>Sociedad Conyugal</option><option>Separación de Bienes</option><option>Participación en los Gananciales</option></select></div>
             <div class="form-group"><label>Profesión / Ocupación</label><input type="text" id="c-profesion" placeholder="Ingeniero Comercial"></div>
           </div>
           <div class="form-row">
@@ -78,6 +79,11 @@ Pages.clientes = {
       </div>
     `;
     this.cargarClientes();
+  },
+
+  toggleRegimen(prefix = 'c-') {
+    const estado = document.getElementById(`${prefix}estado-civil`).value;
+    document.getElementById(`${prefix}regimen-group`).style.display = estado === 'Casado/a' ? 'block' : 'none';
   },
 
   toggleEstrategia() {
@@ -152,6 +158,7 @@ Pages.clientes = {
       correo: document.getElementById('c-correo').value,
       rut: document.getElementById('c-rut').value,
       estado_civil: document.getElementById('c-estado-civil').value,
+      regimen_matrimonial: document.getElementById('c-regimen-matrimonial')?.value || '',
       profesion: document.getElementById('c-profesion').value,
       objetivo: document.getElementById('c-objetivo').value,
       sub_objetivo: document.getElementById('c-objetivo').value === 'Invertir' ? document.getElementById('c-estrategia').value : null,
@@ -253,7 +260,7 @@ Pages.clientes = {
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
             <div class="card">
               <h3>📋 Datos Personales</h3>
-              <p style="font-size:13px;line-height:2;">📧 ${c.correo || 'N/A'}<br>📞 ${c.telefono || 'N/A'}<br>🆔 ${c.rut || 'N/A'}<br>💍 ${c.estado_civil || 'N/A'}<br>🎯 ${c.objetivo || 'N/A'}${c.sub_objetivo ? ` (${c.sub_objetivo})` : ''}</p>
+              <p style="font-size:13px;line-height:2;">📧 ${c.correo || 'N/A'}<br>📞 ${c.telefono || 'N/A'}<br>🆔 ${c.rut || 'N/A'}<br>💍 ${c.estado_civil || 'N/A'}${c.estado_civil === 'Casado/a' && c.regimen_matrimonial ? ` (${c.regimen_matrimonial})` : ''}<br>🎯 ${c.objetivo || 'N/A'}${c.sub_objetivo ? ` (${c.sub_objetivo})` : ''}</p>
             </div>
             <div class="card">
               <h3>💰 Ingresos</h3>
@@ -344,7 +351,7 @@ tr.total td{font-weight:600;color:#fff;background:rgba(212,175,55,0.06)}
 <div><div class="label">RUT</div><div class="value">${esc(c.rut)}</div></div>
 <div><div class="label">Teléfono</div><div class="value">${esc(c.telefono)}</div></div>
 <div><div class="label">Correo</div><div class="value">${esc(c.correo)}</div></div>
-<div><div class="label">Estado Civil</div><div class="value">${esc(c.estado_civil)}</div></div>
+<div><div class="label">Estado Civil</div><div class="value">${esc(c.estado_civil)}${c.estado_civil === 'Casado/a' && c.regimen_matrimonial ? ` (${esc(c.regimen_matrimonial)})` : ''}</div></div>
 <div><div class="label">Profesión</div><div class="value">${esc(c.profesion)}</div></div>
 <div><div class="label">Objetivo</div><div class="value">${esc(c.objetivo)}${c.sub_objetivo ? ` (${esc(c.sub_objetivo)})` : ''}</div></div>
 </div></div>
@@ -393,6 +400,10 @@ ${cuentasRows ? `<div class="section"><div class="section-title">Cuentas Bancari
         <div class="form-group"><label>Profesión</label><input type="text" id="e-profesion" value="${c.profesion || ''}"></div>
       </div>
       <div class="form-row">
+        <div class="form-group"><label>Estado Civil</label><select id="e-estado-civil" onchange="Pages.clientes.toggleRegimen('e-')"><option value="Soltero/a" ${c.estado_civil === 'Soltero/a' ? 'selected' : ''}>Soltero/a</option><option value="Casado/a" ${c.estado_civil === 'Casado/a' ? 'selected' : ''}>Casado/a</option><option value="Divorciado/a" ${c.estado_civil === 'Divorciado/a' ? 'selected' : ''}>Divorciado/a</option><option value="Viudo/a" ${c.estado_civil === 'Viudo/a' ? 'selected' : ''}>Viudo/a</option><option value="Conviviente" ${c.estado_civil === 'Conviviente' ? 'selected' : ''}>Conviviente</option></select></div>
+        <div class="form-group" id="e-regimen-group" style="display:${c.estado_civil === 'Casado/a' ? 'block' : 'none'};"><label>Régimen Matrimonial</label><select id="e-regimen-matrimonial"><option value="Sociedad Conyugal" ${c.regimen_matrimonial === 'Sociedad Conyugal' ? 'selected' : ''}>Sociedad Conyugal</option><option value="Separación de Bienes" ${c.regimen_matrimonial === 'Separación de Bienes' ? 'selected' : ''}>Separación de Bienes</option><option value="Participación en los Gananciales" ${c.regimen_matrimonial === 'Participación en los Gananciales' ? 'selected' : ''}>Participación en los Gananciales</option></select></div>
+      </div>
+      <div class="form-row">
         <div class="form-group"><label>Objetivo</label><select id="e-objetivo"><option value="Vivir" ${c.objetivo === 'Vivir' ? 'selected' : ''}>Vivir</option><option value="Invertir" ${c.objetivo === 'Invertir' ? 'selected' : ''}>Invertir</option></select></div>
         <div class="form-group"><label>Dirección</label><input type="text" id="e-direccion" value="${c.direccion || ''}"></div>
       </div>
@@ -427,6 +438,8 @@ ${cuentasRows ? `<div class="section"><div class="section-title">Cuentas Bancari
       correo: document.getElementById('e-correo').value,
       rut: document.getElementById('e-rut').value,
       profesion: document.getElementById('e-profesion').value,
+      estado_civil: document.getElementById('e-estado-civil').value,
+      regimen_matrimonial: document.getElementById('e-regimen-matrimonial')?.value || '',
       objetivo: document.getElementById('e-objetivo').value,
       direccion: document.getElementById('e-direccion').value,
       ingresos: { renta: +document.getElementById('e-renta').value, dividendos: +document.getElementById('e-dividendos').value, pensiones: +document.getElementById('e-pensiones').value, arriendos: +document.getElementById('e-arriendos').value },
