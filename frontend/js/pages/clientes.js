@@ -244,7 +244,7 @@ Pages.clientes = {
         <div style="padding:24px;max-width:900px;margin:0 auto;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
             <div>
-              <div style="font-size:11px;color:#6b7280;letter-spacing:2px;text-transform:uppercase;">RyR Consultor Inmobiliario</div>
+              <img src="/assets/LogotipoCapitalizarme%20vertical-14.png" style="height:32px;width:auto;">
               <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#fff;margin-top:4px;">${c.nombre}</h1>
               <p style="color:#6b7280;font-size:14px;">${c.profesion || ''} • ${(c.created_at || '').slice(0,10)}</p>
             </div>
@@ -341,7 +341,7 @@ tr.total td{font-weight:600;color:#fff;background:rgba(212,175,55,0.06)}
 @media(max-width:768px){body{padding:24px}.highlight{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}.client-name{font-size:26px}}
 </style></head>
 <body><div class="page">
-<div class="header"><div><div class="brand">RyR Consultor Inmobiliario</div><div class="brand-sub">Ficha Financiera Privada</div></div><div class="header-right"><div class="line">División Residencial Premium</div><div class="line">15 Años de Experiencia</div></div></div>
+<div class="header"><div><div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:#D4AF37;">Capitalizarme</div><div style="font-size:11px;color:#6b7280;letter-spacing:2px;text-transform:uppercase;margin-top:4px;">Ficha Financiera Privada</div></div></div><div class="header-right"><div class="line">Capitalizarme</div></div></div>
 <div class="divider"></div>
 <div class="client-name">${esc(c.nombre)}</div>
 <div class="client-sub">Registrado el ${fecha} · ${esc(c.profesion)}</div>
@@ -370,7 +370,7 @@ tr.total td{font-weight:600;color:#fff;background:rgba(212,175,55,0.06)}
 ${deudas.length ? `<div class="section"><div class="section-title">Deudas Vigentes</div><table><tr><th>Tipo</th><th>Institución</th><th>Cuota</th><th>Saldo Total</th><th>Cuotas Rest.</th><th>Descuenta</th></tr>${deudasRows}</table></div>` : ''}
 ${activosRows ? `<div class="section"><div class="section-title">Activos</div><table><tr><th>Nombre</th><th>Valor Estimado</th></tr>${activosRows}</table></div>` : ''}
 ${cuentasRows ? `<div class="section"><div class="section-title">Cuentas Bancarias</div><table><tr><th>Tipo</th><th>Banco</th></tr>${cuentasRows}</table></div>` : ''}
-<div class="footer"><span>RyR Consultor Inmobiliario — Documento Confidencial</span><span>Generado el ${fecha}</span></div>
+<div class="footer"><span>Capitalizarme — Documento Confidencial</span><span>Generado el ${fecha}</span></div>
 </div></body></html>`;
 
       const blob = new Blob([htmlStr], { type: 'text/html' });
