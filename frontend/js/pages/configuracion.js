@@ -9,7 +9,7 @@ Pages.configuracion = {
     el.innerHTML = `
       <div class="page-title"><h1>⚙️ Configuración</h1><p>Ajusta los parámetros de la fórmula de crédito.</p></div>
       <div class="card">
-        <h3>📐 Fórmula de Cálculo — Límite Máx. Crédito</h3>
+        <h3>📐 Fórmula de Cálculo — Límite Máx. Aprox. Crédito</h3>
         <div style="background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.15);border-radius:10px;padding:16px;margin:16px 0;font-size:14px;color:#d1d5db;font-family:monospace;">
           Límite = ((Sueldo × 60) ÷ UF) × (1 + Porcentaje ÷ 100)
         </div>

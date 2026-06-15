@@ -221,12 +221,13 @@ Pages.clientes = {
     return JSON.parse(localStorage.getItem('configuracion')) || {};
   },
 
-  _calcularLimite(ingresos) {
+  _calcularLimite(ingresos, descuento = 0) {
     const cfg = this._config();
     const uf = cfg.uf_valor || 36000;
     const pct = cfg.porcentaje || 0;
-    const sueldo = ingresos?.renta || 0;
-    const base = (sueldo * 60) / uf;
+    const total = (ingresos?.renta || 0) + (ingresos?.dividendos || 0) + (ingresos?.pensiones || 0) + (ingresos?.arriendos || 0);
+    const neto = Math.max(0, total - descuento);
+    const base = (neto * 60) / uf;
     return (base * (1 + pct / 100)).toFixed(2);
   },
 
@@ -238,7 +239,7 @@ Pages.clientes = {
       const deudas = c.deudas || [];
       const descuento = deudas.filter(d => d.descontar).reduce((s, d) => s + (d.cuota || 0), 0);
       const neto = Math.max(0, total - descuento);
-      const limite = this._calcularLimite(ing);
+      const limite = this._calcularLimite(ing, descuento);
 
       const html = `
         <div style="padding:24px;max-width:900px;margin:0 auto;">
@@ -252,9 +253,9 @@ Pages.clientes = {
           </div>
 
           <div class="highlight-grid">
-            <div class="highlight-item"><div class="num">$${total.toLocaleString()}</div><div class="lbl">Ingresos / Mes</div></div>
+            <div class="highlight-item"><div class="num">$${neto.toLocaleString()}</div><div class="lbl">Ingresos Netos / Mes</div></div>
             <div class="highlight-item"><div class="num">$${(c.capacidad_inversion?.ahorro_pie || 0).toLocaleString()}</div><div class="lbl">Ahorro para Pie</div></div>
-            <div class="highlight-item"><div class="num">${limite} UF</div><div class="lbl">Límite Máx.</div></div>
+            <div class="highlight-item"><div class="num">${limite} UF</div><div class="lbl">Límite Máx. Aprox.</div></div>
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
@@ -294,7 +295,7 @@ Pages.clientes = {
       const deudas = c.deudas || [];
       const descuento = deudas.filter(d => d.descontar).reduce((s, d) => s + (d.cuota || 0), 0);
       const neto = Math.max(0, total - descuento);
-      const limite = this._calcularLimite(ing);
+      const limite = this._calcularLimite(ing, descuento);
       const fecha = (c.created_at || '').slice(0,10) || 'N/A';
 
       const deudasRows = deudas.map(d => `<tr><td>${esc(d.tipo)}</td><td>${esc(d.institucion)}</td><td>${fmt(d.cuota)}</td><td>${fmt(d.total)}</td><td>${d.nro_cuota || 0}</td><td>${d.descontar ? 'Sí' : 'No'}</td></tr>`).join('');
@@ -304,7 +305,7 @@ Pages.clientes = {
       const fichas = [
         ['Ingresos Totales', fmt(total)],
         ['Ingresos Netos', fmt(neto)],
-        ['Límite Máx. Crédito', `${limite} UF`],
+        ['Límite Máx. Aprox. Crédito', `${limite} UF`],
       ];
 
       const htmlStr = `<!DOCTYPE html>
@@ -364,7 +365,7 @@ tr.total td{font-weight:600;color:#fff;background:rgba(212,175,55,0.06)}
 <tr class="total"><td>TOTAL</td><td>${fmt(total)}</td></tr>
 </table></div>
 <div class="section"><div class="section-title">Capacidad de Inversión</div><div class="grid-2">
-<div><div class="label">Límite Máx. Crédito</div><div class="value"><span class="badge">${limite} UF</span></div></div>
+<div><div class="label">Límite Máx. Aprox. Crédito</div><div class="value"><span class="badge">${limite} UF</span></div></div>
 <div><div class="label">CAM</div><div class="value">${fmt(cap.cam)}</div></div>
 </div></div>
 ${deudas.length ? `<div class="section"><div class="section-title">Deudas Vigentes</div><table><tr><th>Tipo</th><th>Institución</th><th>Cuota</th><th>Saldo Total</th><th>Cuotas Rest.</th><th>Descuenta</th></tr>${deudasRows}</table></div>` : ''}
