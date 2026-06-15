@@ -435,6 +435,24 @@ ${cuentasRows ? `<div class="section"><div class="section-title">Cuentas Bancari
         <div class="form-group"><label>Ahorro para pie</label><input type="number" id="e-ahorro-pie" value="${cap.ahorro_pie || 0}"></div>
         <div class="form-group"><label>CAM</label><input type="number" id="e-cam" value="${cap.cam || 0}"></div>
       </div>
+      <div class="section-title" style="margin-top:24px;">📊 Deudas Vigentes</div>
+      <div id="e-deudas-container">
+        ${(c.deudas || []).map((d, i) => `
+          <div style="padding:12px;background:rgba(255,255,255,0.02);border-radius:8px;margin-bottom:8px;">
+            <div style="font-size:13px;color:#D4AF37;margin-bottom:8px;">Deuda #${i + 1}</div>
+            <div class="form-row">
+              <div class="form-group"><label>Tipo</label><input type="text" class="ed-tipo" value="${(d.tipo||'').replace(/"/g, '&quot;')}" placeholder="Hipotecario"></div>
+              <div class="form-group"><label>Institución</label><input type="text" class="ed-inst" value="${(d.institucion||'').replace(/"/g, '&quot;')}" placeholder="Banco Chile"></div>
+            </div>
+            <div class="form-row-3">
+              <div class="form-group"><label>Cuota mensual</label><input type="number" class="ed-cuota" min="0" step="10000" value="${d.cuota || 0}"></div>
+              <div class="form-group"><label>Saldo total</label><input type="number" class="ed-total" min="0" step="100000" value="${d.total || 0}"></div>
+              <div class="form-group"><label>Cuotas rest.</label><input type="number" class="ed-nro" min="0" value="${d.nro_cuota || 0}"></div>
+            </div>
+            <label style="font-size:13px;color:#9ca3af;display:flex;align-items:center;gap:8px;"><input type="checkbox" class="ed-descontar" ${d.descontar ? 'checked' : ''}> ¿Descontar de ingresos?</label>
+          </div>
+        `).join('')}
+      </div>
       <div style="display:flex;gap:8px;margin-top:16px;">
         <button class="btn btn-primary" onclick="Pages.clientes.guardarEditar('${id}')" style="flex:1;">💾 Guardar cambios</button>
         <button class="btn" onclick="Pages.clientes.cerrarEditar()" style="flex:1;">❌ Cancelar</button>
@@ -458,7 +476,12 @@ ${cuentasRows ? `<div class="section"><div class="section-title">Cuentas Bancari
       direccion: document.getElementById('e-direccion').value,
       ingresos: { renta: +document.getElementById('e-renta').value, dividendos: +document.getElementById('e-dividendos').value, pensiones: +document.getElementById('e-pensiones').value, arriendos: +document.getElementById('e-arriendos').value },
       capacidad_inversion: { ahorro_pie: +document.getElementById('e-ahorro-pie').value, cam: +document.getElementById('e-cam').value },
+      deudas: [],
     };
+    document.querySelectorAll('#e-deudas-container > div').forEach(div => {
+      const tipo = div.querySelector('.ed-tipo')?.value;
+      if (tipo) data.deudas.push({ tipo, institucion: div.querySelector('.ed-inst')?.value || '', cuota: +div.querySelector('.ed-cuota')?.value || 0, total: +div.querySelector('.ed-total')?.value || 0, nro_cuota: +div.querySelector('.ed-nro')?.value || 0, descontar: div.querySelector('.ed-descontar')?.checked || false });
+    });
     try {
       await API.actualizarCliente(id, data);
       document.getElementById('e-resultado').innerHTML = '<div class="alert alert-success">✅ Cliente actualizado</div>';
