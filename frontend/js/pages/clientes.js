@@ -274,6 +274,16 @@ Pages.clientes = {
           ${(c.activos || []).length ? `<div class="card" style="margin-bottom:16px;"><h3>🏠 Activos</h3>${c.activos.map(a => `<p style="font-size:13px;">• ${a.nombre}: $${(a.valor || 0).toLocaleString()}</p>`).join('')}</div>` : ''}
 
           ${(c.cuentas || []).length ? `<div class="card" style="margin-bottom:16px;"><h3>🏛️ Cuentas</h3>${c.cuentas.map(ct => `<p style="font-size:13px;">• ${ct.tipo} en ${ct.banco || ct.institucion || ''}</p>`).join('')}</div>` : ''}
+
+          <div class="card" style="margin-bottom:16px;">
+            <h3>📊 Resumen de Cálculo</h3>
+            <p style="font-size:13px;line-height:2;">
+              Ingresos Totales: $${total.toLocaleString()}<br>
+              Deudas Deducibles: -$${descuento.toLocaleString()}<br>
+              <strong>Ingresos Netos: $${neto.toLocaleString()}</strong><br>
+              Límite Máx. Aprox.: ${limite} UF
+            </p>
+          </div>
         </div>
       `;
 
