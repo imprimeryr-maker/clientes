@@ -198,13 +198,16 @@ Pages.clientes = {
       container.innerHTML = clientes.map(c => {
         const ing = c.ingresos || {};
         const total = ing.renta + ing.dividendos + ing.pensiones + ing.arriendos;
+        const deudas = c.deudas || [];
+        const descuento = deudas.filter(d => d.descontar).reduce((s, d) => s + (d.cuota || 0), 0);
+        const neto = Math.max(0, total - descuento);
         return `
           <div class="item-row">
             <div class="item-icon">👤</div>
             <div class="item-body">
               <h3>${c.nombre}</h3>
               <div class="meta">📅 ${(c.created_at || '').slice(0,10)} • ${c.profesion || 'N/A'} • ${c.objetivo || 'N/A'}${c.sub_objetivo ? ` (${c.sub_objetivo})` : ''}</div>
-              <div class="meta">💰 $${total.toLocaleString()}/mes 🏦 Pie: $${(c.capacidad_inversion?.ahorro_pie || 0).toLocaleString()}</div>
+              <div class="meta">💰 $${neto.toLocaleString()}/mes 🏦 Pie: $${(c.capacidad_inversion?.ahorro_pie || 0).toLocaleString()}</div>
             </div>
             <div class="item-actions">
               <button class="btn btn-icon btn-sm" onclick="Pages.clientes.verDetalle('${c.id}')" title="Ver ficha">📄</button>
