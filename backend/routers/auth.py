@@ -8,6 +8,7 @@ from backend.database import (
     get_usuario,
 )
 from backend.models import UsuarioCreate, UsuarioLogin
+from backend.backup_service import export_cliente_backup
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -39,6 +40,7 @@ def register(body: UsuarioCreate):
     usuario = crear_usuario(body.username, body.password)
     if not usuario:
         raise HTTPException(status_code=400, detail="El nombre de usuario ya existe")
+    export_cliente_backup()
     return usuario
 
 
