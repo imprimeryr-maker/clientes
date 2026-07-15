@@ -98,8 +98,6 @@ def _row_to_dict(row):
 
 
 def _restore_db_from_backup():
-    if os.path.exists(DB_PATH):
-        return
     backup_pattern = os.path.join(BACKUPS_DIR, "ryr_*.db")
     backups = sorted(glob.glob(backup_pattern))
     if not backups:
@@ -108,7 +106,7 @@ def _restore_db_from_backup():
     latest = backups[-1]
     os.makedirs(DATA_DIR, exist_ok=True)
     shutil.copy2(latest, DB_PATH)
-    print(f"[db] DB restaurada desde backup: {latest}", flush=True)
+    print(f"[db] DB sustituida por backup: {latest}", flush=True)
 
 
 _restore_db_from_backup()
