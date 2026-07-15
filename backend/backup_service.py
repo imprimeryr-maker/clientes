@@ -1,9 +1,11 @@
+import logging
 import os
 import shutil
 import subprocess
-import threading
 import time
 from pathlib import Path
+
+logger = logging.getLogger("backup")
 
 BACKUP_DIR = Path(__file__).parent / "backups"
 GIT_REMOTE = os.environ.get("GIT_REMOTE", "origin")
@@ -16,6 +18,7 @@ DB_PATH = REPO_DIR / "data" / "ryr.db"
 
 def export_cliente_backup(cliente_data: dict = None):
     if not GITHUB_TOKEN:
+        logger.warning("GITHUB_TOKEN no configurado, se omite backup")
         return
 
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
@@ -26,15 +29,11 @@ def export_cliente_backup(cliente_data: dict = None):
 
     try:
         shutil.copy2(str(DB_PATH), str(filepath))
+        logger.info(f"DB copiada a {filepath}")
     except Exception as e:
-        print(f"[backup] Error copiando DB: {e}")
+        logger.error(f"Error copiando DB: {e}")
         return
 
-    thread = threading.Thread(target=_git_commit_and_push, args=(filepath,), daemon=True)
-    thread.start()
-
-
-def _git_commit_and_push(filepath: Path):
     try:
         subprocess.run(
             ["git", "config", "user.name", "backup-bot"],
@@ -64,8 +63,8 @@ def _git_commit_and_push(filepath: Path):
             cwd=REPO_DIR, capture_output=True, text=True, timeout=30
         )
         if result.returncode != 0:
-            print(f"[backup] Error en git push:\n{result.stderr}")
+            logger.error(f"Error en git push:\n{result.stderr}")
         else:
-            print(f"[backup] Backup subido: {filepath.name}")
+            logger.info(f"Backup subido: {filepath.name}")
     except Exception as e:
-        print(f"[backup] Error en git push: {e}")
+        logger.error(f"Error en git push: {e}")
