@@ -1,34 +1,33 @@
-import json
 import os
+import shutil
 import subprocess
 import threading
 import time
 from pathlib import Path
 
-BACKUP_DIR = Path(__file__).parent / "backups" / "clientes"
+BACKUP_DIR = Path(__file__).parent / "backups"
 GIT_REMOTE = os.environ.get("GIT_REMOTE", "origin")
 GIT_BRANCH = os.environ.get("GIT_BRANCH", "main")
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
 REPO_DIR = Path(__file__).parent.parent
+DB_PATH = REPO_DIR / "data" / "ryr.db"
 
 
-def export_cliente_backup(cliente_data: dict):
+def export_cliente_backup(cliente_data: dict = None):
     if not GITHUB_TOKEN:
         return
 
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    client_id = cliente_data.get("id", "unknown")
-    filename = f"cliente_{client_id}_{timestamp}.json"
+    filename = f"ryr_{timestamp}.db"
     filepath = BACKUP_DIR / filename
 
     try:
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(cliente_data, f, ensure_ascii=False, indent=2, default=str)
+        shutil.copy2(str(DB_PATH), str(filepath))
     except Exception as e:
-        print(f"[backup] Error escribiendo JSON: {e}")
+        print(f"[backup] Error copiando DB: {e}")
         return
 
     thread = threading.Thread(target=_git_commit_and_push, args=(filepath,), daemon=True)
@@ -50,7 +49,7 @@ def _git_commit_and_push(filepath: Path):
             cwd=REPO_DIR, capture_output=True, timeout=10
         )
         subprocess.run(
-            ["git", "commit", "-m", f"Backup automático: {filepath.name}"],
+            ["git", "commit", "-m", f"Backup DB: {filepath.name}"],
             cwd=REPO_DIR, capture_output=True, timeout=10
         )
         subprocess.run(
