@@ -2,10 +2,13 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 import time
 from pathlib import Path
 
 logger = logging.getLogger("backup")
+logger.addHandler(logging.StreamHandler(sys.stdout))
+logger.setLevel(logging.INFO)
 
 BACKUP_DIR = Path(__file__).parent / "backups"
 GIT_REMOTE = os.environ.get("GIT_REMOTE", "origin")
