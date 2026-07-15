@@ -20,7 +20,7 @@ def log(msg):
     print(f"[backup] {msg}", flush=True)
 
 
-def _github_api(method, path, data=None):
+def _github_api(method, path, data=None, expect_404=False):
     url = f"https://api.github.com/repos/{OWNER}/{REPO}/{path}"
     headers = {
         "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -33,6 +33,8 @@ def _github_api(method, path, data=None):
         with urllib.request.urlopen(req, timeout=30) as resp:
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
+        if e.code == 404 and expect_404:
+            return None
         body = e.read().decode()
         log(f"API error ({e.code}): {body[:500]}")
         return None
@@ -70,7 +72,7 @@ def export_cliente_backup(cliente_data: dict = None):
         github_path = f"backend/backups/{filename}"
 
         sha = None
-        existing = _github_api("GET", f"contents/{github_path}?ref={BRANCH}")
+        existing = _github_api("GET", f"contents/{github_path}?ref={BRANCH}", expect_404=True)
         if existing and "sha" in existing:
             sha = existing["sha"]
             log(f"Archivo ya existe en GitHub, se actualizará (sha={sha[:8]}...)")
