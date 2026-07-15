@@ -8,6 +8,7 @@ from backend.database import (
 )
 from backend.models import ClienteCreate, ClienteUpdate
 from backend.routers.auth import get_current_user
+from backend.backup_service import export_cliente_backup
 
 router = APIRouter(prefix="/api/clientes", tags=["clientes"])
 
@@ -28,7 +29,9 @@ def obtener_cliente(cliente_id: str, usuario: dict = Depends(get_current_user)):
 @router.post("")
 def crear_cliente(body: ClienteCreate, usuario: dict = Depends(get_current_user)):
     data = body.model_dump()
-    return db_create_cliente(data, usuario["id"])
+    cliente = db_create_cliente(data, usuario["id"])
+    export_cliente_backup(cliente)
+    return cliente
 
 
 @router.put("/{cliente_id}")
