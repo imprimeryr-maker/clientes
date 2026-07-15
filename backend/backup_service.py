@@ -1,14 +1,16 @@
+import base64
+import json
 import os
 import shutil
-import subprocess
-import sys
 import time
+import urllib.request
 from pathlib import Path
 
 BACKUP_DIR = Path(__file__).parent / "backups"
-GIT_REMOTE = os.environ.get("GIT_REMOTE", "origin")
-GIT_BRANCH = os.environ.get("GIT_BRANCH", "main")
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
+OWNER = "imprimeryr-maker"
+REPO = "clientes"
+BRANCH = "main"
 
 REPO_DIR = Path(__file__).parent.parent
 DB_PATH = REPO_DIR / "data" / "ryr.db"
@@ -18,34 +20,35 @@ def log(msg):
     print(f"[backup] {msg}", flush=True)
 
 
-def export_cliente_backup(cliente_data: dict = None):
-    repo_url = f"https://github.com/imprimeryr-maker/clientes.git"
+def _github_api(method, path, data=None):
+    url = f"https://api.github.com/repos/{OWNER}/{REPO}/{path}"
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "backup-bot",
+    }
+    body = json.dumps(data).encode() if data else None
+    req = urllib.request.Request(url, data=body, method=method, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        log(f"API error ({e.code}): {body[:500]}")
+        return None
 
+
+def export_cliente_backup(cliente_data: dict = None):
     log("=== INICIO BACKUP ===")
 
     if not GITHUB_TOKEN:
         log("GITHUB_TOKEN no configurado, se omite backup")
         return
 
-    token_preview = GITHUB_TOKEN[:6] + "..." if len(GITHUB_TOKEN) > 6 else "?"
-    log(f"Token GITHUB_TOKEN configurado ({token_preview})")
-
     if not DB_PATH.exists():
         log(f"ERROR: DB no encontrada en {DB_PATH}")
         return
-    log(f"DB encontrada en {DB_PATH} ({DB_PATH.stat().st_size} bytes)")
-
-    git_path = shutil.which("git")
-    if not git_path:
-        log("ERROR: git no está instalado en el contenedor")
-        return
-    log(f"git encontrado en {git_path}")
-
-    git_dir = REPO_DIR / ".git"
-    if not git_dir.exists():
-        log(f"ERROR: directorio .git no existe en {REPO_DIR}")
-        return
-    log("directorio .git encontrado")
+    log(f"DB encontrada ({DB_PATH.stat().st_size} bytes)")
 
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -61,47 +64,29 @@ def export_cliente_backup(cliente_data: dict = None):
         return
 
     try:
-        r = subprocess.run(["git", "config", "user.name", "backup-bot"],
-                           cwd=REPO_DIR, capture_output=True, text=True, timeout=10)
-        if r.returncode != 0:
-            log(f"git config user.name: {r.stderr.strip()}")
+        with open(filepath, "rb") as f:
+            content_b64 = base64.b64encode(f.read()).decode()
 
-        r = subprocess.run(["git", "config", "user.email", "backup@bot.local"],
-                           cwd=REPO_DIR, capture_output=True, text=True, timeout=10)
-        if r.returncode != 0:
-            log(f"git config user.email: {r.stderr.strip()}")
+        github_path = f"backend/backups/{filename}"
 
-        r = subprocess.run(["git", "add", str(filepath)],
-                           cwd=REPO_DIR, capture_output=True, text=True, timeout=10)
-        log(f"git add: retcode={r.returncode}")
-        if r.returncode != 0:
-            log(f"git add stderr: {r.stderr.strip()}")
-            return
+        sha = None
+        existing = _github_api("GET", f"contents/{github_path}?ref={BRANCH}")
+        if existing and "sha" in existing:
+            sha = existing["sha"]
+            log(f"Archivo ya existe en GitHub, se actualizará (sha={sha[:8]}...)")
 
-        r = subprocess.run(["git", "commit", "-m", f"Backup DB: {filename}"],
-                           cwd=REPO_DIR, capture_output=True, text=True, timeout=10)
-        log(f"git commit: retcode={r.returncode}")
-        if r.returncode != 0:
-            log(f"git commit: {r.stdout.strip()}")
+        payload = {
+            "message": f"Backup DB: {filename}",
+            "content": content_b64,
+            "branch": BRANCH,
+        }
+        if sha:
+            payload["sha"] = sha
 
-        r = subprocess.run(
-            ["git", "remote", "set-url", GIT_REMOTE,
-             f"https://{GITHUB_TOKEN}@github.com/imprimeryr-maker/clientes.git"],
-            cwd=REPO_DIR, capture_output=True, text=True, timeout=10
-        )
-        if r.returncode != 0:
-            log(f"git remote set-url: {r.stderr.strip()}")
-
-        r = subprocess.run(["git", "push", GIT_REMOTE, GIT_BRANCH],
-                           cwd=REPO_DIR, capture_output=True, text=True, timeout=30)
-        log(f"git push: retcode={r.returncode}")
-        log(f"git push stdout: {r.stdout.strip()}")
-        if r.returncode != 0:
-            log(f"git push stderr: {r.stderr.strip()}")
-            log("ERROR: el push a GitHub falló")
+        result = _github_api("PUT", f"contents/{github_path}", payload)
+        if result:
+            log(f"=== BACKUP SUBIDO A GITHUB ({filename}) ===")
         else:
-            log("=== BACKUP COMPLETADO Y SUBIDO A GITHUB ===")
-    except subprocess.TimeoutExpired:
-        log("ERROR: git push tardó más de 30 segundos, timeout")
+            log(f"ERROR: no se pudo subir el backup")
     except Exception as e:
-        log(f"ERROR en git push: {e}")
+        log(f"ERROR en backup: {e}")
