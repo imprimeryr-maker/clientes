@@ -1,13 +1,16 @@
+import glob
 import hashlib
 import json
 import os
 import secrets
+import shutil
 import sqlite3
 import uuid
 from datetime import datetime
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 DB_PATH = os.path.join(DATA_DIR, "ryr.db")
+BACKUPS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "backend", "backups")
 
 
 def _get_conn():
@@ -94,6 +97,21 @@ def _row_to_dict(row):
     return d
 
 
+def _restore_db_from_backup():
+    if os.path.exists(DB_PATH):
+        return
+    backup_pattern = os.path.join(BACKUPS_DIR, "ryr_*.db")
+    backups = sorted(glob.glob(backup_pattern))
+    if not backups:
+        print("[db] No hay backups disponibles, se creará DB nueva", flush=True)
+        return
+    latest = backups[-1]
+    os.makedirs(DATA_DIR, exist_ok=True)
+    shutil.copy2(latest, DB_PATH)
+    print(f"[db] DB restaurada desde backup: {latest}", flush=True)
+
+
+_restore_db_from_backup()
 _init_db()
 
 # ========== USUARIOS ==========
